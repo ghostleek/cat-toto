@@ -70,7 +70,7 @@
     .stats-row {
       display: flex;
       justify-content: center;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     .stats-badge {
@@ -408,11 +408,6 @@
   <main class="app">
     <section class="hero" aria-label="App intro">
       <div class="badge">🐱 Cat-powered random picker</div>
-      <div class="stats-row">
-        <span class="stats-badge" aria-label="Unique cats served">
-          😺 <span class="stats-count" id="catsServed">–</span> unique cats served
-        </span>
-      </div>
       <h1>Let Your Cat Pick!</h1>
       <p class="subtitle">Tap the giant button, or let your cat do the honours. Pick a number from your chosen range.</p>
     </section>
@@ -451,6 +446,12 @@
         <span class="empty-state">No numbers yet. Let the cat choose first.</span>
       </div>
     </section>
+
+    <div class="stats-row">
+      <span class="stats-badge" aria-label="Unique cats served">
+        😺 <span class="stats-count" id="catsServed">–</span> unique cats served
+      </span>
+    </div>
   </main>
 
   <div class="toast" id="toast">Range fixed</div>
