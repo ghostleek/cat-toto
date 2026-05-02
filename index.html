@@ -235,6 +235,36 @@
       text-align: center;
     }
 
+    .lick-toggle {
+      display: flex;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    .lick-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: background 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      letter-spacing: -0.01em;
+    }
+
+    .lick-btn.active {
+      background: linear-gradient(145deg, #fb7185, #f97316);
+      color: #fff7ed;
+      border-color: transparent;
+      box-shadow: 0 8px 24px rgba(249, 115, 22, 0.28);
+    }
+
     .controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -398,6 +428,12 @@
           <span class="button-face">Tap</span>
         </button>
         <div class="tap-label">Tap button to pick</div>
+        <div class="lick-toggle">
+          <button class="lick-btn" id="lickBtn" aria-pressed="false" aria-label="Toggle lick mode: pick a number by swiping up">
+            <span>😽</span>
+            <span>Lick Mode</span>
+          </button>
+        </div>
       </div>
 
       <div class="controls" aria-label="Number range">
@@ -428,6 +464,7 @@
   <script>
     const pawBtn = document.getElementById("pawBtn");
     const clearBtn = document.getElementById("clearBtn");
+    const lickBtn = document.getElementById("lickBtn");
     const display = document.getElementById("display");
     const historyList = document.getElementById("history");
     const minInput = document.getElementById("minNum");
@@ -436,6 +473,7 @@
     const toast = document.getElementById("toast");
 
     let history = [];
+    let lickMode = false;
 
     function showToast(message) {
       toast.textContent = message;
@@ -508,6 +546,41 @@
     }
 
     pawBtn.addEventListener("click", pickNumber);
+
+    lickBtn.addEventListener("click", () => {
+      lickMode = !lickMode;
+      lickBtn.setAttribute("aria-pressed", lickMode);
+      lickBtn.classList.toggle("active", lickMode);
+      hint.textContent = lickMode ? "Swipe up to pick!" : "Ready for a tap";
+      showToast(lickMode ? "Lick mode on 😽" : "Lick mode off");
+    });
+
+    // Swipe-up (touch) detection for lick mode
+    let touchStartY = null;
+    document.addEventListener("touchstart", (e) => {
+      if (!lickMode) return;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener("touchend", (e) => {
+      if (!lickMode || touchStartY === null) return;
+      const dy = touchStartY - e.changedTouches[0].clientY;
+      if (dy > 50) {
+        pickNumber();
+      }
+      touchStartY = null;
+    }, { passive: true });
+
+    // Scroll-up (wheel) detection for lick mode — scoped to picker card
+    let wheelCooldown = false;
+    document.querySelector(".picker-card").addEventListener("wheel", (e) => {
+      if (!lickMode || wheelCooldown) return;
+      if (e.deltaY < 0) {
+        pickNumber();
+        wheelCooldown = true;
+        window.setTimeout(() => { wheelCooldown = false; }, 800);
+      }
+    }, { passive: true });
 
     clearBtn.addEventListener("click", () => {
       history = [];
