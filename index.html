@@ -469,7 +469,7 @@
     </section>
   </main>
 
-  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true" aria-label="Confetti celebration animation"></canvas>
 
   <div class="toast" id="toast">Range fixed</div>
 
@@ -494,6 +494,8 @@
     const CONFETTI_PARTICLE_COUNT = 130;
     const CONFETTI_DURATION_MS    = 2400;
     const CONFETTI_EXTRA_DURATION_MS = 800;
+    const PARTICLE_START_Y_OFFSET = 10;
+    const PARTICLE_START_Y_SPREAD = 120;
     const VELOCITY_X_RANGE        = 3.5;
     const VELOCITY_Y_MIN          = 2;
     const VELOCITY_Y_RANGE        = 4;
@@ -525,7 +527,7 @@
       for (let i = 0; i < CONFETTI_PARTICLE_COUNT; i++) {
         confettiParticles.push({
           x:    Math.random() * confettiCanvas.width,
-          y:    -10 - Math.random() * 120,
+          y:    -PARTICLE_START_Y_OFFSET - Math.random() * PARTICLE_START_Y_SPREAD,
           vx:   (Math.random() - 0.5) * VELOCITY_X_RANGE,
           vy:   VELOCITY_Y_MIN + Math.random() * VELOCITY_Y_RANGE,
           color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
