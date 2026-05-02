@@ -629,6 +629,17 @@
       });
     }
 
+    function fitDisplayText(text) {
+      const len = String(text).length;
+      let size;
+      if      (len <= 2)  size = "clamp(5.8rem, 28vw, 8.5rem)";
+      else if (len <= 4)  size = "clamp(3.5rem, 17vw, 5.5rem)";
+      else if (len <= 6)  size = "clamp(2.6rem, 13vw, 4rem)";
+      else if (len <= 10) size = "clamp(1.8rem, 9vw,  2.8rem)";
+      else                size = "clamp(1.2rem, 6vw,  1.8rem)";
+      display.style.fontSize = size;
+    }
+
     function pickNumber() {
       let picked;
 
@@ -645,6 +656,7 @@
       }
 
       display.textContent = picked;
+      fitDisplayText(picked);
       display.classList.remove("pop");
       void display.offsetWidth;
       display.classList.add("pop");
@@ -668,6 +680,7 @@
     clearBtn.addEventListener("click", () => {
       history = [];
       display.textContent = "?";
+      display.style.fontSize = "";
       hint.textContent = "Ready for a tap";
       renderHistory();
       showToast("History cleared");
