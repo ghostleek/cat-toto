@@ -67,6 +67,31 @@
       box-shadow: 0 8px 24px rgba(154, 52, 18, 0.08);
     }
 
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .stats-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(249, 115, 22, 0.10);
+      border: 1px solid rgba(249, 115, 22, 0.18);
+      color: #c2410c;
+      font-size: 0.78rem;
+      font-weight: 850;
+      letter-spacing: 0.01em;
+    }
+
+    .stats-count {
+      font-weight: 1000;
+      font-variant-numeric: tabular-nums;
+    }
+
     h1 {
       margin: 16px 0 8px;
       font-size: clamp(2rem, 9vw, 3.2rem);
@@ -553,6 +578,12 @@
         <span class="empty-state">Nothing picked yet. Let the cat choose first.</span>
       </div>
     </section>
+
+    <div class="stats-row">
+      <span class="stats-badge" aria-label="Unique cats served">
+        😺 <span class="stats-count" id="catsServed">–</span> unique cats served
+      </span>
+    </div>
   </main>
 
   <div class="toast" id="toast">Range fixed</div>
@@ -758,6 +789,57 @@
       renderHistory();
       showToast("History cleared");
     });
+
+    // ---------------------------------------------------------------------------
+    // Unique cats served — session tracking
+    //
+    // A "session" is one continuous page visit (a new tab, reload, or first open
+    // counts as a new session).  We use sessionStorage to guard against counting
+    // the same open tab more than once, and localStorage to accumulate the total
+    // unique-session count for this device.
+    //
+    // For cross-device / global unique-visitor metrics on GitHub Pages the
+    // recommended approach is GoatCounter (free, open-source, privacy-friendly):
+    //   1. Sign up at https://www.goatcounter.com/ and create a site.
+    //   2. Replace "YOURCODE" in the <script> tag at the bottom of this file with
+    //      your GoatCounter site code.
+    //   3. GoatCounter will then track page views and unique visitors. You can
+    //      view the public dashboard at https://YOURCODE.goatcounter.com/ and
+    //      access daily/weekly/monthly unique-visitor counts there.
+    // ---------------------------------------------------------------------------
+    (function trackSession() {
+      const SESSION_KEY = "cat_session_active";
+      const VISITS_KEY  = "cat_unique_sessions";
+
+      const catsServedEl = document.getElementById("catsServed");
+      let sessions = parseInt(localStorage.getItem(VISITS_KEY) || "0", 10);
+
+      if (!sessionStorage.getItem(SESSION_KEY)) {
+        // New session — mark it and increment the stored count.
+        sessionStorage.setItem(SESSION_KEY, "1");
+        sessions += 1;
+        localStorage.setItem(VISITS_KEY, String(sessions));
+      }
+
+      if (catsServedEl) {
+        catsServedEl.textContent = sessions.toLocaleString();
+      }
+    })();
   </script>
+
+  <!--
+    Usage metrics — GoatCounter analytics (privacy-friendly, free tier available).
+    To activate:
+      1. Sign up at https://www.goatcounter.com/ and create a site.
+      2. Replace YOURCODE below with your GoatCounter site code.
+      3. Commit and push — GoatCounter will start recording page views and
+         unique visitor counts immediately.  View your dashboard at
+         https://YOURCODE.goatcounter.com/
+  -->
+  <script
+    data-goatcounter="https://YOURCODE.goatcounter.com/count"
+    async
+    src="//gc.zgo.at/count.js"
+  ></script>
 </body>
 </html>
