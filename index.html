@@ -407,6 +407,16 @@
       .paw-button { width: min(58vw, 220px); }
       h1 { font-size: clamp(1.8rem, 8vw, 2.6rem); }
     }
+
+    .confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -459,7 +469,7 @@
     </section>
   </main>
 
-  <canvas id="confettiCanvas" aria-hidden="true" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none;"></canvas>
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
 
   <div class="toast" id="toast">Range fixed</div>
 
@@ -480,7 +490,23 @@
     let lickMode = false;
 
     // ── Confetti ─────────────────────────────────────────────────────────────
-    const CONFETTI_COLORS = ["#f97316","#fb7185","#facc15","#a78bfa","#34d399","#60a5fa","#f472b6"];
+    const CONFETTI_COLORS         = ["#f97316","#fb7185","#facc15","#a78bfa","#34d399","#60a5fa","#f472b6"];
+    const CONFETTI_PARTICLE_COUNT = 130;
+    const CONFETTI_DURATION_MS    = 2400;
+    const CONFETTI_EXTRA_DURATION_MS = 800;
+    const VELOCITY_X_RANGE        = 3.5;
+    const VELOCITY_Y_MIN          = 2;
+    const VELOCITY_Y_RANGE        = 4;
+    const PARTICLE_WIDTH_MIN      = 7;
+    const PARTICLE_WIDTH_RANGE    = 8;
+    const PARTICLE_HEIGHT_MIN     = 3;
+    const PARTICLE_HEIGHT_RANGE   = 5;
+    const ROTATION_VELOCITY_RANGE = 0.22;
+    const GRAVITY                 = 0.07;
+    const FADE_START_RATIO        = 0.55;
+    const FADE_RATE               = 0.022;
+    const WHEEL_COOLDOWN_MS       = 300;
+
     let confettiParticles = [];
     let confettiAnimId = null;
 
@@ -496,23 +522,22 @@
       confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
 
       confettiParticles = [];
-      for (let i = 0; i < 130; i++) {
+      for (let i = 0; i < CONFETTI_PARTICLE_COUNT; i++) {
         confettiParticles.push({
           x:    Math.random() * confettiCanvas.width,
           y:    -10 - Math.random() * 120,
-          vx:   (Math.random() - 0.5) * 3.5,
-          vy:   2 + Math.random() * 4,
+          vx:   (Math.random() - 0.5) * VELOCITY_X_RANGE,
+          vy:   VELOCITY_Y_MIN + Math.random() * VELOCITY_Y_RANGE,
           color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-          w:    7 + Math.random() * 8,
-          h:    3 + Math.random() * 5,
+          w:    PARTICLE_WIDTH_MIN  + Math.random() * PARTICLE_WIDTH_RANGE,
+          h:    PARTICLE_HEIGHT_MIN + Math.random() * PARTICLE_HEIGHT_RANGE,
           rot:  Math.random() * Math.PI * 2,
-          rotV: (Math.random() - 0.5) * 0.22,
+          rotV: (Math.random() - 0.5) * ROTATION_VELOCITY_RANGE,
           life: 1,
         });
       }
 
       const startTime = performance.now();
-      const duration  = 2400;
 
       function frame(now) {
         const elapsed = now - startTime;
@@ -522,11 +547,11 @@
         for (const p of confettiParticles) {
           p.x  += p.vx;
           p.y  += p.vy;
-          p.vy += 0.07;
+          p.vy += GRAVITY;
           p.rot += p.rotV;
 
-          if (elapsed > duration * 0.55) {
-            p.life = Math.max(0, p.life - 0.022);
+          if (elapsed > CONFETTI_DURATION_MS * FADE_START_RATIO) {
+            p.life = Math.max(0, p.life - FADE_RATE);
           }
 
           if (p.y < confettiCanvas.height + 20 && p.life > 0) alive = true;
@@ -540,7 +565,7 @@
           confettiCtx.restore();
         }
 
-        if (alive && elapsed < duration + 800) {
+        if (alive && elapsed < CONFETTI_DURATION_MS + CONFETTI_EXTRA_DURATION_MS) {
           confettiAnimId = requestAnimationFrame(frame);
         } else {
           confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
@@ -660,7 +685,7 @@
       if (e.deltaY < 0) {
         pickNumber();
         wheelCooldown = true;
-        window.setTimeout(() => { wheelCooldown = false; }, 300);
+        window.setTimeout(() => { wheelCooldown = false; }, WHEEL_COOLDOWN_MS);
       }
     }, { passive: true });
 
