@@ -1,0 +1,8 @@
+{
+  "name": "cat-toto",
+  "version": "1.0.0",
+  "description": "Cat-powered random picker",
+  "scripts": {
+    "test": "node --test tests/spec.js"
+  }
+}
