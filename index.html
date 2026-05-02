@@ -235,11 +235,41 @@
       text-align: center;
     }
 
+    .mode-toggle {
+      display: flex;
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .mode-toggle button {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 10px 6px;
+      cursor: pointer;
+      transition: background 150ms, color 150ms;
+    }
+
+    .mode-toggle button.active {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 16px;
+    }
+
     .controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-top: 16px;
+      margin-top: 10px;
     }
 
     .control {
@@ -270,6 +300,61 @@
       font-size: 1.25rem;
       font-weight: 950;
       text-align: center;
+    }
+
+    .options-control {
+      display: none;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.72);
+      border-radius: 18px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .options-control.visible {
+      display: block;
+    }
+
+    .options-control label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .options-control input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .options-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      min-height: 30px;
+    }
+
+    .options-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+      color: #c2410c;
+      font-size: 0.85rem;
+      font-weight: 900;
     }
 
     .history-container {
@@ -384,7 +469,7 @@
     <section class="hero" aria-label="App intro">
       <div class="badge">🐱 Cat-powered random picker</div>
       <h1>Let Your Cat Pick!</h1>
-      <p class="subtitle">Tap the giant button, or let your cat do the honours. Pick a number from your chosen range.</p>
+      <p class="subtitle">Tap the giant button, or let your cat do the honours. Pick from a number range or your own list of options.</p>
     </section>
 
     <section class="picker-card" aria-label="Number picker">
@@ -400,7 +485,12 @@
         <div class="tap-label">Tap button to pick</div>
       </div>
 
-      <div class="controls" aria-label="Number range">
+      <div class="mode-toggle" role="group" aria-label="Picker mode">
+        <button id="modeRange" class="active" aria-pressed="true">Range</button>
+        <button id="modeOptions" aria-pressed="false">My Options</button>
+      </div>
+
+      <div class="controls" id="rangeControls" aria-label="Number range">
         <div class="control">
           <label for="minNum">Min</label>
           <input id="minNum" type="number" inputmode="numeric" value="1" />
@@ -410,6 +500,12 @@
           <input id="maxNum" type="number" inputmode="numeric" value="49" />
         </div>
       </div>
+
+      <div class="options-control" id="optionsControl" aria-label="Custom options">
+        <label for="optionsInput">Your options (comma-separated)</label>
+        <input id="optionsInput" type="text" inputmode="text" placeholder="e.g. pizza, tacos, sushi, pasta" />
+        <div class="options-chips" id="optionsChips" aria-label="Parsed options"></div>
+      </div>
     </section>
 
     <section class="history-container" aria-label="Numbers picked history">
@@ -418,7 +514,7 @@
         <button class="clear-button" id="clearBtn">Clear</button>
       </div>
       <div class="history-list" id="history">
-        <span class="empty-state">No numbers yet. Let the cat choose first.</span>
+        <span class="empty-state">Nothing picked yet. Let the cat choose first.</span>
       </div>
     </section>
   </main>
@@ -434,8 +530,15 @@
     const maxInput = document.getElementById("maxNum");
     const hint = document.getElementById("hint");
     const toast = document.getElementById("toast");
+    const modeRangeBtn = document.getElementById("modeRange");
+    const modeOptionsBtn = document.getElementById("modeOptions");
+    const rangeControls = document.getElementById("rangeControls");
+    const optionsControl = document.getElementById("optionsControl");
+    const optionsInput = document.getElementById("optionsInput");
+    const optionsChips = document.getElementById("optionsChips");
 
     let history = [];
+    let mode = "range"; // "range" | "options"
 
     function showToast(message) {
       toast.textContent = message;
@@ -465,13 +568,55 @@
       return { min, max };
     }
 
+    function getParsedOptions() {
+      return optionsInput.value
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+    }
+
+    function renderOptionsChips() {
+      const opts = getParsedOptions();
+      optionsChips.innerHTML = "";
+      opts.forEach((opt) => {
+        const chip = document.createElement("span");
+        chip.className = "options-chip";
+        chip.textContent = opt;
+        optionsChips.appendChild(chip);
+      });
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      if (mode === "range") {
+        modeRangeBtn.classList.add("active");
+        modeRangeBtn.setAttribute("aria-pressed", "true");
+        modeOptionsBtn.classList.remove("active");
+        modeOptionsBtn.setAttribute("aria-pressed", "false");
+        rangeControls.style.display = "grid";
+        optionsControl.classList.remove("visible");
+      } else {
+        modeOptionsBtn.classList.add("active");
+        modeOptionsBtn.setAttribute("aria-pressed", "true");
+        modeRangeBtn.classList.remove("active");
+        modeRangeBtn.setAttribute("aria-pressed", "false");
+        rangeControls.style.display = "none";
+        optionsControl.classList.add("visible");
+        renderOptionsChips();
+      }
+    }
+
+    modeRangeBtn.addEventListener("click", () => setMode("range"));
+    modeOptionsBtn.addEventListener("click", () => setMode("options"));
+    optionsInput.addEventListener("input", renderOptionsChips);
+
     function renderHistory() {
       historyList.innerHTML = "";
 
       if (history.length === 0) {
         const empty = document.createElement("span");
         empty.className = "empty-state";
-        empty.textContent = "No numbers yet. Let the cat choose first.";
+        empty.textContent = "Nothing picked yet. Let the cat choose first.";
         historyList.appendChild(empty);
         return;
       }
@@ -485,16 +630,27 @@
     }
 
     function pickNumber() {
-      const { min, max } = getRange();
-      const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+      let picked;
 
-      display.textContent = randomNum;
+      if (mode === "options") {
+        const opts = getParsedOptions();
+        if (opts.length === 0) {
+          showToast("Add some options first!");
+          return;
+        }
+        picked = opts[Math.floor(Math.random() * opts.length)];
+      } else {
+        const { min, max } = getRange();
+        picked = Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      display.textContent = picked;
       display.classList.remove("pop");
       void display.offsetWidth;
       display.classList.add("pop");
 
       hint.textContent = "The cat has chosen";
-      history.push(randomNum);
+      history.push(picked);
 
       if (history.length > 24) {
         history = history.slice(history.length - 24);
