@@ -26,7 +26,7 @@ All UI, styling, and behavior live in `index.html`. The `<script>` block at the 
 - **Two picker modes**, toggled by the `mode` variable (`"range"` | `"options"`):
   - Range mode reads `minNum`/`maxNum` inputs and picks a random integer in `[min, max]`.
   - Options mode parses a comma-separated string from `optionsInput` into a list and picks one.
-- **Lick mode** (`lickMode` boolean) repurposes swipe-up touch gestures and wheel-up scroll events on the `.picker-card` as additional triggers for `pickNumber()`. Wheel events have an 800ms cooldown.
+- **Lick mode** (`lickMode` boolean) adds two extra ways to trigger `pickNumber()`: swipe-up touch gestures (listeners on `document`, fire when the upward delta exceeds 50px) and wheel-up scroll events scoped to `.picker-card` (with an 800ms cooldown). The two listeners are intentionally scoped differently — keep them in sync if you change one.
 - **Display sizing** (`fitDisplayText`) shrinks the font size based on picked-text length so long option strings still fit in the panel.
 - **Session counter** (`trackSession` IIFE near the bottom): increments a `localStorage` counter once per `sessionStorage` session, displayed as "unique cats served". For cross-device analytics the file is wired up to GoatCounter at the very bottom (`<script data-goatcounter=...>`).
 
