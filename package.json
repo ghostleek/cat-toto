@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Cat-powered random picker",
   "scripts": {
-    "test": "node --test tests/spec.js"
+    "test": "node --test tests/spec.js",
+    "test:e2e": "node tests/lick-mode.test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }
